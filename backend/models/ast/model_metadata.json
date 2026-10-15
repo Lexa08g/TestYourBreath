@@ -1,0 +1,14 @@
+{
+  "model_id": "MIT/ast-finetuned-audioset-10-10-0.4593",
+  "sample_rate": 16000,
+  "window_seconds": 2.7,
+  "overlap": 0.5,
+  "max_length": 1024,
+  "num_mel_bins": 128,
+  "recording_aggregation": "maximum",
+  "threshold": 0.957912266254425,
+  "class_names": [
+    "Normal",
+    "Abnormal"
+  ]
+}

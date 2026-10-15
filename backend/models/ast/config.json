@@ -1,0 +1,31 @@
+{
+  "architectures": [
+    "ASTForAudioClassification"
+  ],
+  "attention_probs_dropout_prob": 0.0,
+  "dtype": "float32",
+  "frequency_stride": 10,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.0,
+  "hidden_size": 768,
+  "id2label": {
+    "0": "Normal",
+    "1": "Abnormal"
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "label2id": {
+    "Abnormal": 1,
+    "Normal": 0
+  },
+  "layer_norm_eps": 1e-12,
+  "max_length": 1024,
+  "model_type": "audio-spectrogram-transformer",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "num_mel_bins": 128,
+  "patch_size": 16,
+  "qkv_bias": true,
+  "time_stride": 10,
+  "transformers_version": "4.57.6"
+}
