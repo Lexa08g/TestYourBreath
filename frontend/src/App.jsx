@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
-import Home from './pages/Home';
 import Analyze from './pages/Analyze';
 import Results from './pages/Results';
-import About from './pages/About';
 
 export default function App() {
-  const [activePage, setActivePage] = useState('home');
+  const [activePage, setActivePage] = useState('analyze');
   const [currentResult, setCurrentResult] = useState(null);
   const [currentAudioFile, setCurrentAudioFile] = useState(null);
 
@@ -38,11 +36,7 @@ export default function App() {
 
       {/* Main Content View with Error Boundary protection */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <ErrorBoundary onReset={() => setActivePage('home')}>
-          {activePage === 'home' && (
-            <Home setActivePage={handleNavigate} />
-          )}
-
+        <ErrorBoundary onReset={() => setActivePage('analyze')}>
           {activePage === 'analyze' && (
             <Analyze onAnalysisComplete={handleAnalysisComplete} />
           )}
@@ -53,10 +47,6 @@ export default function App() {
               audioFile={currentAudioFile}
               onReset={handleResetAnalysis}
             />
-          )}
-
-          {activePage === 'about' && (
-            <About setActivePage={handleNavigate} />
           )}
         </ErrorBoundary>
       </main>

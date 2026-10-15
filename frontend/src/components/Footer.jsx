@@ -32,26 +32,10 @@ export default function Footer({ setActivePage }) {
             <ul className="space-y-2 text-xs">
               <li>
                 <button 
-                  onClick={() => setActivePage('home')}
-                  className="hover:text-white transition-colors"
-                >
-                  Beranda
-                </button>
-              </li>
-              <li>
-                <button 
                   onClick={() => setActivePage('analyze')}
                   className="hover:text-white transition-colors"
                 >
                   Analisis Suara Pernapasan
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => setActivePage('about')}
-                  className="hover:text-white transition-colors"
-                >
-                  Arsitektur Model & Metodologi
                 </button>
               </li>
             </ul>

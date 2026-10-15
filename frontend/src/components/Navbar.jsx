@@ -37,9 +37,7 @@ export default function Navbar({ activePage, setActivePage }) {
   }, []);
 
   const navItems = [
-    { id: 'home', label: 'Beranda' },
     { id: 'analyze', label: 'Analisis Suara' },
-    { id: 'about', label: 'Tentang Model' },
   ];
 
   return (
@@ -48,7 +46,7 @@ export default function Navbar({ activePage, setActivePage }) {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo & Brand */}
           <div 
-            onClick={() => { setActivePage('home'); setMobileMenuOpen(false); }}
+            onClick={() => { setActivePage('analyze'); setMobileMenuOpen(false); }}
             className="flex items-center gap-3 cursor-pointer group"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-900 via-sky-900 to-teal-600 flex items-center justify-center text-white shadow-md shadow-slate-900/10 group-hover:scale-105 transition-transform duration-200">

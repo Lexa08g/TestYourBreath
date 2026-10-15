@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, RefreshCw, Home } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -39,7 +39,7 @@ export default class ErrorBoundary extends React.Component {
                 Terjadi Kendala Tampilan
               </h2>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Antarmuka mengalami kendala render. Anda dapat menyegarkan halaman atau kembali ke beranda.
+                Antarmuka mengalami kendala render. Anda dapat menyegarkan halaman atau mengulang analisis.
               </p>
             </div>
             {this.state.error?.message && (
