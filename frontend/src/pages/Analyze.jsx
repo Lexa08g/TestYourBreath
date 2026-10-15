@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { 
   ArrowRight, AlertCircle, 
-  Activity, HelpCircle, ShieldCheck
+  Activity, ShieldCheck
 } from 'lucide-react';
 import AudioUploader from '../components/AudioUploader';
 import AudioPlayer from '../components/AudioPlayer';
 import AnalysisProgress from '../components/AnalysisProgress';
 import MedicalDisclaimer from '../components/MedicalDisclaimer';
+import RecordingGuide from '../components/RecordingGuide';
 import { analyzeAudio } from '../services/api';
 
 export default function Analyze({ onAnalysisComplete }) {
@@ -64,8 +65,14 @@ export default function Analyze({ onAnalysisComplete }) {
         </p>
       </div>
 
+      {/* Visual Recording Guide with Trachea Illustrations */}
+      <RecordingGuide defaultExpanded={true} />
+
       {/* Main Analysis Card */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
+      <div 
+        id="skrining"
+        className="scroll-mt-24 md:scroll-mt-28 bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6"
+      >
         {/* Loading state vs Upload/Preview state */}
         {isAnalyzing ? (
           <AnalysisProgress />
@@ -131,19 +138,6 @@ export default function Analyze({ onAnalysisComplete }) {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Guidelines Box */}
-      <div className="p-5 rounded-2xl bg-slate-100/80 border border-slate-200 text-xs text-slate-600 space-y-2">
-        <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
-          <HelpCircle className="w-4 h-4 text-teal-600" />
-          <span>Panduan Rekaman Audio untuk Hasil Optimal:</span>
-        </h4>
-        <ul className="list-disc list-inside space-y-1 pl-1 text-slate-600">
-          <li>Gunakan rekaman dengan durasi minimal 2,7 detik (rekomendasi 5 hingga 15 detik).</li>
-          <li>Pastikan mikrofon atau stetoskop digital ditempatkan stabil pada dinding dada/trakea tanpa gesekan pakaian.</li>
-          <li>Lakukan rekaman di ruangan yang tenang dengan meminimalkan suara percakapan latar.</li>
-        </ul>
       </div>
 
       {/* Medical Disclaimer */}

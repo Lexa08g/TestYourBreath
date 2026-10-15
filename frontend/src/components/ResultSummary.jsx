@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
-  CheckCircle2, AlertTriangle, Info, Clock, Layers, 
-  Gauge, BarChart, ShieldCheck, Zap, Sparkles
+  CheckCircle2, AlertTriangle, Stethoscope, HeartPulse, 
+  ShieldCheck, HelpCircle, Activity, ChevronDown, 
+  PhoneCall, AlertOctagon, Check
 } from 'lucide-react';
 
 export default function ResultSummary({ result }) {
+  const [showScoreDetail, setShowScoreDetail] = useState(false);
+
   if (!result) return null;
 
   const threshold = result.threshold || 0.9579;
   const windows = result.windows || [];
   const numWindows = result.num_windows || windows.length || 1;
 
-  // Nilai metrik dasar dari windows
+  // Nilai metrik dasar
   const abnormalWindows = windows.filter(w => w.abnormal_model_score >= threshold);
   const abnormalCount = result.abnormal_window_count !== undefined 
     ? result.abnormal_window_count 
@@ -30,219 +33,261 @@ export default function ResultSummary({ result }) {
     ? result.is_isolated_spike 
     : (abnormalCount === 1 && numWindows > 1 && peakScore < (threshold + 0.02) && avgScore < threshold);
 
-  // Evaluasi tetap menggunakan mode Konsensus Robust
-  let currentLabel = 'Normal';
-  let currentScore = peakScore;
-  let currentCategory = 'Normal';
-  let currentNotes = '';
-
+  // Evaluasi Konsensus
+  let isAbnormal = false;
   if (numWindows === 1) {
-    currentLabel = peakScore >= threshold ? 'Abnormal' : 'Normal';
-    currentScore = peakScore;
-    currentCategory = peakScore >= threshold ? 'Abnormal (Window Tunggal)' : 'Normal';
+    isAbnormal = peakScore >= threshold;
   } else {
     if (abnormalCount >= 2 || abnormalRatio >= 0.25) {
-      currentLabel = 'Abnormal';
-      currentScore = peakScore;
-      currentCategory = 'Abnormal Konsisten';
+      isAbnormal = true;
     } else if (abnormalCount === 1) {
-      if (isIsolatedSpike) {
-        currentLabel = 'Normal';
-        currentScore = avgScore;
-        currentCategory = 'Fluktuasi Terisolasi / Rentan Derau';
-      } else {
-        currentLabel = 'Abnormal';
-        currentScore = peakScore;
-        currentCategory = 'Abnormal Terisolasi Kuat';
-      }
+      isAbnormal = !isIsolatedSpike;
     } else {
-      currentLabel = 'Normal';
-      currentScore = peakScore;
-      currentCategory = 'Normal Konsisten';
+      isAbnormal = false;
     }
   }
 
-  if (currentLabel === 'Normal' && isIsolatedSpike) {
-    currentNotes = `Klasifikasi: Normal (dengan Fluktuasi Terisolasi). Hanya 1 dari ${numWindows} segmen audio yang menyentuh ambang batas secara marjinal (${peakScore.toFixed(4)} vs ambang ${threshold.toFixed(4)}), sedangkan ${((1.0 - abnormalRatio) * 100).toFixed(1)}% segmen lainnya berada di zona normal dengan skor rata-rata rekaman ${avgScore.toFixed(4)}. Pada mikrofon HP tanpa stetoskop, letupan sesaat ini umumnya bersumber dari turbulensi udara napas atau gesekan fisik, bukan pola abnormalitas klinis konsisten.`;
-  } else if (currentLabel === 'Normal') {
-    currentNotes = `Klasifikasi: Normal. Seluruh ${numWindows} segmen audio konsisten berada dalam rentang normal dengan skor puncak ${peakScore.toFixed(4)} dan rata-rata ${avgScore.toFixed(4)}, di bawah ambang batas skrining (${threshold.toFixed(4)}).`;
-  } else if (abnormalCount >= 2) {
-    currentNotes = `Klasifikasi: Abnormal. Terdeteksi ${abnormalCount} dari ${numWindows} segmen (${(abnormalRatio * 100).toFixed(1)}%) yang konsisten melampaui ambang batas model (${threshold.toFixed(4)}), dengan skor puncak ${peakScore.toFixed(4)}.`;
-  } else {
-    currentNotes = `Klasifikasi: Abnormal. Terdeteksi segmen pernapasan dengan deviasi akustik tajam (${peakScore.toFixed(4)}) yang melampaui batas toleransi derau.`;
-  }
-
-  const isAbnormal = currentLabel === 'Abnormal';
-
   return (
-    <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
-      {/* Mode Badge — informational, no selection */}
-      <div className="flex items-center gap-2 pb-4 border-b border-slate-100">
-        <ShieldCheck className="w-4 h-4 text-teal-600" />
-        <span className="text-xs font-bold text-teal-800">Mode Evaluasi: Konsensus Robust</span>
-        <span className="text-xs text-slate-500">— Akurat &amp; toleran derau mikrofon HP</span>
-      </div>
-
-      {/* Classification Outcome Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">
-              Hasil Skrining
-            </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono">
-              {currentCategory}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 mt-1.5">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {isAbnormal ? 'Klasifikasi: Abnormal' : 'Klasifikasi: Normal'}
-            </h2>
-            <span
-              className={`px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                isAbnormal
-                  ? 'bg-amber-50 text-amber-700 border-amber-200'
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              }`}
-            >
-              {currentLabel}
-            </span>
-          </div>
-        </div>
-
-        <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
-            isAbnormal
-              ? 'bg-amber-100/80 text-amber-700'
-              : 'bg-emerald-100/80 text-emerald-700'
-          }`}
-        >
-          {isAbnormal ? (
-            <AlertTriangle className="w-7 h-7" />
-          ) : (
-            <CheckCircle2 className="w-7 h-7" />
-          )}
-        </div>
-      </div>
-
-      {/* Special Callout: Isolated Spike / Noise Warning */}
-      {isIsolatedSpike && (
-        <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/90 text-amber-950 space-y-1.5">
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
-            <Sparkles className="w-4 h-4 text-amber-600" />
-            <span>Penyesuaian Akustik: Fluktuasi Derau Terisolasi Terdeteksi</span>
-          </div>
-          <p className="text-xs text-amber-900 leading-relaxed">
-            Hanya <strong>1 dari {numWindows} segmen</strong> yang menyentuh ambang batas secara marjinal ({peakScore.toFixed(4)} vs ambang batas {threshold.toFixed(4)}), sedangkan <strong>{((1.0 - abnormalRatio) * 100).toFixed(0)}% segmen lainnya berada di zona normal</strong>. 
-            Pada mikrofon smartphone atau rekaman non-stetoskop, lonjakan tunggal sesaat seperti ini umumnya disebabkan oleh letupan hembusan udara (breath puff), desah napas tajam, atau gesekan fisik mikrofon, bukan kelainan paru konsisten.
-          </p>
-        </div>
-      )}
-
-      {/* Summary Note */}
-      <div
-        className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
+    <div className="space-y-6">
+      {/* 1. Main Outcome Card */}
+      <div 
+        className={`rounded-3xl border p-6 sm:p-8 transition-all duration-200 ${
           isAbnormal
-            ? 'bg-amber-50/50 border-amber-200/80 text-amber-950'
-            : 'bg-teal-50/50 border-teal-200/80 text-teal-950'
+            ? 'bg-gradient-to-br from-amber-50/90 via-white to-rose-50/60 border-amber-200/90 shadow-sm'
+            : 'bg-gradient-to-br from-teal-50/80 via-white to-emerald-50/60 border-teal-200/90 shadow-sm'
         }`}
       >
-        <p className="font-medium">{currentNotes}</p>
-        <p className="text-xs text-slate-500 mt-2">
-          *Catatan: Skor keluaran model merepresentasikan kecocokan pola akustik dengan data referensi ICBHI dan bukan diagnosis penyakit tertentu.
-        </p>
-      </div>
+        {/* Status Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/70">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border shadow-2xs bg-white">
+              {isAbnormal ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-amber-800">Perlu Pemeriksaan Lanjutan</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-emerald-800">Hasil Skrining Bersih</span>
+                </>
+              )}
+            </div>
 
-      {/* Score Comparison Gauge against Checkpoint Threshold */}
-      <div className="space-y-3 p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1">
-          <span className="font-semibold text-slate-700 flex items-center gap-1.5">
-            <Gauge className="w-4 h-4 text-teal-600" />
-            <span>Skor Evaluasi (Konsensus) vs Ambang Batas</span>
-          </span>
-          <span className="font-mono text-slate-500">
-            Skor: <strong className="text-slate-900">{currentScore.toFixed(4)}</strong> / Ambang Batas: {threshold.toFixed(4)}
-          </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              {isAbnormal ? 'Pola Suara Napas: Terindikasi Tidak Biasa' : 'Pola Suara Napas: Normal'}
+            </h2>
+
+            <p className="text-sm text-slate-600 max-w-xl">
+              {isAbnormal 
+                ? 'Model kecerdasan buatan mendeteksi karakteristik suara pernapasan tambahan yang tidak umum ditemukan pada napas sehat.'
+                : isIsolatedSpike
+                ? 'Secara keseluruhan suara pernapasan Anda normal dan bersih, dengan sedikit suara hembusan mikrofon sesaat yang tidak berbahaya.'
+                : 'Suara pernapasan Anda terdengar teratur, bersih, dan tidak ditemukan tanda bunyi napas tambahan.'
+              }
+            </p>
+          </div>
+
+          <div
+            className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
+              isAbnormal
+                ? 'bg-amber-500 text-white shadow-amber-500/20'
+                : 'bg-emerald-600 text-white shadow-emerald-600/20'
+            }`}
+          >
+            {isAbnormal ? (
+              <AlertTriangle className="w-8 h-8" />
+            ) : (
+              <CheckCircle2 className="w-8 h-8" />
+            )}
+          </div>
         </div>
 
-        {/* Progress bar with threshold marker */}
-        <div className="relative pt-2 pb-1">
-          <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden flex">
-            {/* Model abnormal score fill */}
-            <div
+        {/* 2. Content Breakdown: Reason if Normal, Guidance if Abnormal */}
+        <div className="pt-6">
+          {!isAbnormal ? (
+            /* KONDISI NORMAL: Alasan Kenapa Dinyatakan Normal */
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Alasan Mengapa Dinyatakan Normal:</span>
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                <div className="p-4 rounded-2xl bg-white border border-teal-100 shadow-2xs space-y-1.5">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+                    1
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm">Aliran Napas Lancar</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Siklus menarik dan membuang napas stabil tanpa penyempitan saluran udara.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white border border-teal-100 shadow-2xs space-y-1.5">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+                    2
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm">Bebas Bunyi Tambahan</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Tidak ditemukan bunyi mengi/ngik-ngik (wheezing) atau suara gemeretak basah (crackles).
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white border border-teal-100 shadow-2xs space-y-1.5">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+                    3
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm">Karakteristik Akustik Baik</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Frekuensi suara pernapasan konsisten berada pada spektrum paru yang sehat.
+                  </p>
+                </div>
+              </div>
+
+              {/* Tips Sehat */}
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-emerald-950 text-xs sm:text-sm flex items-start gap-3">
+                <HeartPulse className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-bold">Saran Menjaga Kesehatan Paru:</p>
+                  <p className="text-xs text-emerald-900 leading-relaxed">
+                    Pertahankan kesehatan sistem pernapasan Anda dengan berolahraga teratur, minum air putih cukup, dan menghindari paparan asap rokok atau polusi udara. Jika di kemudian hari timbul keluhan batuk atau sesak, periksakan ke dokter.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* KONDISI ABNORMAL: Petunjuk & Langkah Selanjutnya */
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-sm font-bold text-amber-950 uppercase tracking-wider flex items-center gap-2">
+                  <Stethoscope className="w-4 h-4 text-amber-600" />
+                  <span>Petunjuk &amp; Langkah Lebih Lanjut:</span>
+                </h3>
+                <p className="text-xs text-slate-600 mt-1">
+                  Skrining awal ini bukan diagnosis penyakit. Lakukan langkah-langkah berikut untuk memastikan kondisi pernapasan Anda:
+                </p>
+              </div>
+
+              {/* 3 Action Steps */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                {/* Step 1 */}
+                <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
+                      1
+                    </span>
+                    <h4 className="font-bold text-slate-900 text-sm">Periksa ke Dokter</h4>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Kunjungi puskesmas, klinik, atau dokter spesialis paru untuk pemeriksaan stetoskop (auskultasi fisik) secara langsung.
+                  </p>
+                </div>
+
+                {/* Step 2 */}
+                <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
+                      2
+                    </span>
+                    <h4 className="font-bold text-slate-900 text-sm">Pantau Gejala</h4>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Catat apakah ada sesak napas, bunyi napas 'ngik-ngik', batuk berdahak, demam, atau rasa berat di dada saat beraktivitas.
+                  </p>
+                </div>
+
+                {/* Step 3 */}
+                <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-2xs space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
+                      3
+                    </span>
+                    <h4 className="font-bold text-slate-900 text-sm">Tindakan Mandiri</h4>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Duduk tegak santai, hindari berbaring jika sesak, jauhi asap rokok dan debu. Gunakan obat yang pernah diresepkan dokter jika ada.
+                  </p>
+                </div>
+              </div>
+
+              {/* Red Flag Warning Box */}
+              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-950 text-xs sm:text-sm flex items-start gap-3">
+                <AlertOctagon className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-rose-900">Kapan Harus Segera ke IGD Rumah Sakit?</p>
+                  <p className="text-xs text-rose-800 leading-relaxed">
+                    Segera cari bantuan medis darurat jika mengalami: napas tersengal-sengal parah, kesulitan berbicara lebih dari beberapa kata, bibir atau ujung jari membiru, atau nyeri dada yang menusuk.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Simple Visual Meter (Human Friendly) */}
+        <div className="mt-6 pt-5 border-t border-slate-200/70 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-slate-700">Indikator Tingkat Risiko Suara:</span>
+            <span className={`font-bold ${isAbnormal ? 'text-amber-700' : 'text-emerald-700'}`}>
+              {isAbnormal ? 'Terindikasi Pola Tambahan' : 'Zona Aman (Normal)'}
+            </span>
+          </div>
+
+          {/* Clean Visual Bar */}
+          <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden p-0.5 flex">
+            <div 
               className={`h-full rounded-full transition-all duration-500 ${
-                isAbnormal
-                  ? 'bg-gradient-to-r from-amber-400 to-rose-500'
+                isAbnormal 
+                  ? 'bg-gradient-to-r from-amber-400 to-rose-500' 
                   : 'bg-gradient-to-r from-teal-400 to-emerald-500'
               }`}
-              style={{ width: `${Math.min(100, Math.max(2, currentScore * 100))}%` }}
+              style={{ width: isAbnormal ? '85%' : '20%' }}
             />
           </div>
 
-          {/* Threshold marker position */}
-          <div
-            className="absolute top-0 bottom-0 flex flex-col items-center pointer-events-none"
-            style={{ left: `${Math.min(98, Math.max(2, threshold * 100))}%` }}
-          >
-            <div className="w-0.5 h-6 bg-slate-900 shadow-xs" />
-            <span className="text-[10px] font-mono font-bold text-slate-700 -mt-0.5">
-              Ambang ({threshold.toFixed(2)})
-            </span>
+          <div className="flex justify-between text-[11px] text-slate-500">
+            <span>🟢 Bersih (Normal)</span>
+            <span>🟡 Perlu Konfirmasi Medis</span>
+            <span>🔴 Indikasi Kuat</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-          <span>0.00 (Normal Murni)</span>
-          <span className="text-slate-400 font-mono text-[10px]">
-            Puncak: {peakScore.toFixed(4)} &bull; Rata-Rata: {avgScore.toFixed(4)}
+        {/* Optional Toggle for Technical Metrics */}
+        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setShowScoreDetail(!showScoreDetail)}
+            className="text-xs font-semibold text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors"
+          >
+            <span>{showScoreDetail ? 'Sembunyikan Angka Metrik' : 'Tampilkan Angka Metrik AI'}</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showScoreDetail ? 'rotate-180' : ''}`} />
+          </button>
+          <span className="text-[11px] text-slate-400">
+            Durasi rekaman: {result.duration_seconds} detik
           </span>
-          <span>1.00 (Abnormal Kuat)</span>
-        </div>
-      </div>
-
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-slate-500" />
-            Durasi Rekaman
-          </span>
-          <p className="text-base font-bold text-slate-900 font-mono">
-            {result.duration_seconds}s
-          </p>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-            <Layers className="w-3.5 h-3.5 text-slate-500" />
-            Segmen Terindikasi
-          </span>
-          <p className="text-base font-bold text-slate-900 font-mono">
-            {abnormalCount} / {numWindows} <span className="text-xs text-slate-500 font-normal">({(abnormalRatio * 100).toFixed(0)}%)</span>
-          </p>
-        </div>
-
-        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-            <BarChart className="w-3.5 h-3.5 text-slate-500" />
-            Rata-Rata Skor
-          </span>
-          <p className="text-base font-bold text-slate-900 font-mono">
-            {avgScore.toFixed(4)}
-          </p>
-        </div>
-
-        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-            <Zap className="w-3.5 h-3.5 text-slate-500" />
-            Skor Puncak Window
-          </span>
-          <p className="text-base font-bold text-slate-900 font-mono">
-            {peakScore.toFixed(4)}
-          </p>
-        </div>
+        {/* Technical Score Sub-panel (hidden by default) */}
+        {showScoreDetail && (
+          <div className="mt-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 font-mono space-y-1">
+            <div className="flex justify-between">
+              <span>Skor Abnormal Tertinggi:</span>
+              <strong className="text-slate-900">{peakScore.toFixed(4)}</strong>
+            </div>
+            <div className="flex justify-between">
+              <span>Ambang Batas Model:</span>
+              <strong className="text-slate-900">{threshold.toFixed(4)}</strong>
+            </div>
+            <div className="flex justify-between">
+              <span>Segmen Terdampak:</span>
+              <strong className="text-slate-900">{abnormalCount} dari {numWindows} window</strong>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-

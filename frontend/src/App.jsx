@@ -29,10 +29,31 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleStartScreening = () => {
+    if (activePage !== 'analyze') {
+      setActivePage('analyze');
+      setTimeout(() => {
+        const el = document.getElementById('skrining');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    } else {
+      const el = document.getElementById('skrining');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
       {/* Top Navbar */}
-      <Navbar activePage={activePage} setActivePage={handleNavigate} />
+      <Navbar 
+        activePage={activePage} 
+        setActivePage={handleNavigate} 
+        onStartScreening={handleStartScreening} 
+      />
 
       {/* Main Content View with Error Boundary protection */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">

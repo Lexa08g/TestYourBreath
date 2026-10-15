@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Activity, Radio, Cpu, Menu, X, ArrowRight } from 'lucide-react';
 import { checkHealth } from '../services/api';
 
-export default function Navbar({ activePage, setActivePage }) {
+export default function Navbar({ activePage, setActivePage, onStartScreening }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [serverStatus, setServerStatus] = useState({
     checked: false,
@@ -10,6 +10,23 @@ export default function Navbar({ activePage, setActivePage }) {
     modelLoaded: false,
     device: 'cpu',
   });
+
+  const handleStartScreeningClick = () => {
+    setMobileMenuOpen(false);
+    if (onStartScreening) {
+      onStartScreening();
+    } else {
+      if (activePage !== 'analyze') {
+        setActivePage('analyze');
+      }
+      setTimeout(() => {
+        const el = document.getElementById('skrining');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  };
 
   const verifyBackend = async () => {
     try {
@@ -74,8 +91,14 @@ export default function Navbar({ activePage, setActivePage }) {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActivePage(item.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  onClick={() => {
+                    if (item.id === 'analyze') {
+                      handleStartScreeningClick();
+                    } else {
+                      setActivePage(item.id);
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
                     isActive
                       ? 'bg-slate-100 text-slate-900 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -116,8 +139,10 @@ export default function Navbar({ activePage, setActivePage }) {
 
             {/* Action CTA */}
             <button
-              onClick={() => setActivePage('analyze')}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200 group"
+              id="btn-mulai-skrining-desktop"
+              type="button"
+              onClick={handleStartScreeningClick}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200 group cursor-pointer"
             >
               <span>Mulai Skrining</span>
               <ArrowRight className="w-4 h-4 text-teal-400 group-hover:translate-x-0.5 transition-transform" />
@@ -144,10 +169,14 @@ export default function Navbar({ activePage, setActivePage }) {
             <button
               key={item.id}
               onClick={() => {
-                setActivePage(item.id);
-                setMobileMenuOpen(false);
+                if (item.id === 'analyze') {
+                  handleStartScreeningClick();
+                } else {
+                  setActivePage(item.id);
+                  setMobileMenuOpen(false);
+                }
               }}
-              className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-semibold ${
+              className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-semibold cursor-pointer ${
                 activePage === item.id
                   ? 'bg-slate-100 text-slate-900'
                   : 'text-slate-600 hover:bg-slate-50'
@@ -158,11 +187,10 @@ export default function Navbar({ activePage, setActivePage }) {
           ))}
           <div className="pt-2 border-t border-slate-100">
             <button
-              onClick={() => {
-                setActivePage('analyze');
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold shadow-sm"
+              id="btn-mulai-skrining-mobile"
+              type="button"
+              onClick={handleStartScreeningClick}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold shadow-sm cursor-pointer"
             >
               <span>Mulai Skrining Audio</span>
               <ArrowRight className="w-4 h-4 text-teal-400" />
