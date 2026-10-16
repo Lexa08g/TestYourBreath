@@ -1,15 +1,57 @@
 # TestYourBreath — AI-Assisted Respiratory Sound Screening Platform
 
-> **"Memahami Suara Pernapasan, Mendukung Langkah Awal."**
+> **"Setiap Tarikan Napas Berharga: Membuka Akses Skrining Respirasi Berkeadilan Melalui Kecerdasan Buatan."**
 
-TestYourBreath adalah platform skrining awal berbasis kecerdasan buatan (*Artificial Intelligence*) yang menganalisis rekaman suara pernapasan (auskultasi paru) menggunakan arsitektur **Audio Spectrogram Transformer (AST)** yang di-*fine-tune* pada dataset **ICBHI 2017 Respiratory Sound Database**.
+TestYourBreath (PulmoSense) adalah platform skrining awal berbasis kecerdasan buatan (*Artificial Intelligence*) yang menganalisis rekaman suara pernapasan (auskultasi paru) menggunakan arsitektur **Audio Spectrogram Transformer (AST)** yang di-*fine-tune* pada dataset **ICBHI 2017 Respiratory Sound Database**.
 
 Aplikasi ini dibangun secara menyeluruh mencakup backend FastAPI berkinerja tinggi, pipeline pemrosesan sinyal audio digital, inferensi model deep learning murni tanpa mock data, visualisasi interaktif per-window, serta antarmuka web modern berbahasa Indonesia.
 
 ---
 
+## 🌍 Latar Belakang & Masalah Sosial (The Problem)
+
+Penyakit sistem pernapasan merupakan salah satu krisis kesehatan masyarakat terbesar di dunia dan Indonesia, namun kerap menjadi **"silent killer"** karena ketidaksetaraan akses fasilitas kesehatan:
+
+1. **Beban Penyakit yang Mengancam Jiwa**:
+   - Berdasarkan data **World Health Organization (WHO)**, Penyakit Paru Obstruktif Kronis (PPOK), Pneumonia, dan Asma merenggut lebih dari **4 juta jiwa setiap tahunnya**.
+   - Di Indonesia, Infeksi Saluran Pernapasan Akut (ISPA) dan pneumonia konsisten menjadi salah satu penyebab mortalitas tertinggi, khususnya pada kelompok rentan seperti anak-anak balita dan lansia.
+2. **Ketimpangan Fasilitas Kesehatan & Tenaga Spesialis (Healthcare Inequity)**:
+   - Rasio dokter spesialis paru (pulmonolog) per kapita di Indonesia masih sangat minim dan terkonsentrasi di kota-kota besar.
+   - Fasilitas pelayanan kesehatan primer (Puskesmas) dan daerah 3T (Tertinggal, Terdepan, Terluar) seringkali beroperasi tanpa alat penunjang diagnostik respirasi digital yang memadai, sehingga skrining bergantung penuh pada pendengaran manual.
+3. **Subjektivitas Auskultasi Konvensional & "Late Diagnosis Penalty"**:
+   - Auskultasi menggunakan stetoskop akustik konvensional rentan bias subjektif pemeriksa dan kebisingan lingkungan sekitar.
+   - Akibatnya, anomali akustik awal seperti *crackles* (ronki basah) atau *wheezes* (mengi) kerap terlewat hingga penyakit berkembang ke stadium lanjut. Keterlambatan ini berujung pada biaya pengobatan katastropik bagi keluarga kurang mampu serta risiko fatalitas yang jauh lebih tinggi.
+
+---
+
+## 🎯 Tujuan & Visi Proyek (Our Mission)
+
+**TestYourBreath** dikembangkan dengan satu misi fundamental: **Mendemokratisasi akses skrining kesehatan pernapasan agar dapat dijangkau oleh seluruh lapisan masyarakat secara adil, cepat, dan non-invasif.**
+
+- **Demokratisasi Skrining Awal Cepat & Terjangkau**: Memberikan akses kepada masyarakat luas untuk melakukan skrining mandiri hanya dengan mengunggah rekaman audio pernapasan, menghasilkan analisis instan (<2 detik) tanpa perlu perangkat keras medis berbiaya mahal.
+- **Dukungan Triase untuk Nakes Primer**: Menjadi instrumen *second opinion* yang objektif bagi dokter umum, perawat, atau kader posyandu di daerah terpencil untuk menentukan urgensi rujukan pasien ke fasilitas rujukan lanjutan secara lebih terukur.
+- **Transparansi Berbasis Segmen (Explainable AI)**: Mengatasi kelemahan AI "kotak hitam" (*black box*) dengan membedah sinyal pernapasan ke dalam visualisasi window 2,7 detik, membantu pengguna dan tenaga medis memahami segmen mana yang memicu indikasi abnormalitas.
+
+---
+
+## 💡 Dampak Sosial & Relevansi SDG (Social Impact)
+
+Proyek ini tidak hanya berfokus pada kecanggihan komputasi, melainkan dirancang dengan sentuhan kemanusiaan untuk menjawab target pembangunan global:
+
+| Target SDG | Kontribusi & Dampak Nyata TestYourBreath |
+| :--- | :--- |
+| **SDG 3: Good Health & Well-being** *(Kesehatan yang Baik dan Kesejahteraan)* | Membantu menurunkan angka kematian dini akibat penyakit paru kronis dan infeksi respirasi melalui intervensi deteksi dini pada masa *golden period*. |
+| **SDG 10: Reduced Inequalities** *(Berkurangnya Kesenjangan)* | Menjembatani jurang fasilitas antara wilayah rural/3T dan urban dengan menghadirkan kapabilitas skrining berbasis AI kelas rumah sakit rujukan ke genggaman masyarakat. |
+| **Efisiensi Beban Finansial Keluarga & JKN** | Mencegah lonjakan beban biaya pengobatan stadium lanjut (seperti perawatan ventilator di ICU) dengan mendorong penanganan preventif sejak dini, meringankan beban ekonomi keluarga dan sistem BPJS. |
+| **Prinsip AI yang Bertanggung Jawab (Responsible AI)** | Menjunjung privasi mutlak pasien (rekaman audio segera dihapus dari memori, *zero data retention*), mengedukasi masyarakat tanpa memicu kepanikan, serta memposisikan AI sebagai mitra kolaboratif tenaga medis, bukan pengganti diagnosis dokter. |
+
+---
+
 ## 📑 Daftar Isi
 
+- [Latar Belakang & Masalah Sosial](#-latar-belakang--masalah-sosial-the-problem)
+- [Tujuan & Visi Proyek](#-tujuan--visi-proyek-our-mission)
+- [Dampak Sosial & Relevansi SDG](#-dampak-sosial--relevansi-sdg-social-impact)
 - [Fitur Utama](#-fitur-utama)
 - [Arsitektur Sistem](#-arsitektur-sistem)
 - [Struktur Proyek](#-struktur-proyek)
