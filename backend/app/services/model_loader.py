@@ -48,6 +48,16 @@ class ModelManager:
             raise FileNotFoundError(
                 f"File checkpoint model tidak ditemukan di: {checkpoint_path}"
             )
+
+        # Validasi Git LFS pointer: file model asli ~345 MB, sedangkan pointer LFS hanya ~130 byte
+        file_size = checkpoint_path.stat().st_size
+        if file_size < 1_000_000:
+            raise RuntimeError(
+                f"File checkpoint di '{checkpoint_path}' hanya berukuran {file_size} bytes. "
+                "File ini terdeteksi sebagai pointer Git LFS dan belum mengunduh bobot model riil (~345 MB). "
+                "Silakan jalankan perintah 'git lfs pull' pada terminal di root proyek sebelum menjalankan aplikasi."
+            )
+
         if not config_path.exists():
             raise FileNotFoundError(
                 f"File konfigurasi model tidak ditemukan di: {config_path}"

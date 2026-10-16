@@ -21,19 +21,27 @@ class Settings(BaseModel):
     APP_DESCRIPTION: str = "AI-Assisted Respiratory Sound Screening Platform Backend"
     
     # Network
-    HOST: str = os.getenv("HOST", "127.0.0.1")
+    HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "8000"))
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
     
     # CORS
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-    ]
+    CORS_ORIGINS: List[str] = (
+        [origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()]
+        if os.getenv("CORS_ORIGINS")
+        else [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+            "http://localhost",
+            "http://127.0.0.1",
+            "http://localhost:80",
+            "http://127.0.0.1:80",
+        ]
+    )
     
     # Audio & File validation constraints
     MAX_FILE_SIZE_BYTES: int = 25 * 1024 * 1024  # 25 MB

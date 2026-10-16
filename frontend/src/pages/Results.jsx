@@ -6,7 +6,6 @@ import {
 import ResultSummary from '../components/ResultSummary';
 import WindowResults from '../components/WindowResults';
 import AudioPlayer from '../components/AudioPlayer';
-import MedicalDisclaimer from '../components/MedicalDisclaimer';
 
 export default function Results({ result, audioFile, onReset }) {
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
@@ -152,9 +151,6 @@ export default function Results({ result, audioFile, onReset }) {
           </div>
         )}
       </div>
-
-      {/* 4. Medical Disclaimer */}
-      <MedicalDisclaimer />
     </div>
   );
 }

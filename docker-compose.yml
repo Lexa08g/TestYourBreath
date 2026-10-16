@@ -1,0 +1,58 @@
+services:
+  # =======================================================
+  # 1. Backend Service (FastAPI + PyTorch AST Engine)
+  # =======================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: testyourbreath-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:80,http://localhost,http://127.0.0.1:5173,http://127.0.0.1:3000,http://127.0.0.1:80,http://127.0.0.1
+    networks:
+      - pulmosense-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # =======================================================
+  # 2. Frontend Service (React 19 + Vite + Nginx Alpine)
+  # =======================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:8000
+    container_name: testyourbreath-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - pulmosense-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+# =========================================================
+# Bridge Network untuk komunikasi antar kontainer
+# =========================================================
+networks:
+  pulmosense-network:
+    driver: bridge

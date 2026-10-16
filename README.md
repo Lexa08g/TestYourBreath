@@ -16,8 +16,10 @@ Aplikasi ini dibangun secara menyeluruh mencakup backend FastAPI berkinerja ting
 - [Persyaratan Sistem](#-persyaratan-sistem)
 - [Spesifikasi Model & Preprocessing](#-spesifikasi-model--preprocessing)
 - [Panduan Instalasi & Menjalankan Aplikasi](#-panduan-instalasi--menjalankan-aplikasi)
-  - [1. Backend (FastAPI + PyTorch)](#1-backend-fastapi--pytorch)
-  - [2. Frontend (React + Vite + Tailwind CSS)](#2-frontend-react--vite--tailwind-css)
+  - [🐳 Opsi A: Docker & Docker Compose (Paling Cepat & Direkomendasikan)](#-opsi-a-docker--docker-compose-paling-cepat--direkomendasikan)
+  - [💻 Opsi B: Instalasi Manual Lokal (Development)](#-opsi-b-instalasi-manual-lokal-development)
+    - [1. Backend (FastAPI + PyTorch)](#1-backend-fastapi--pytorch)
+    - [2. Frontend (React + Vite + Tailwind CSS)](#2-frontend-react--vite--tailwind-css)
 - [Menjalankan Pengujian (Testing)](#-menjalankan-pengujian-testing)
 - [Troubleshooting](#-troubleshooting)
 - [Batasan Model & Etika AI](#-batasan-model--etika-ai)
@@ -81,7 +83,13 @@ flowchart TD
 
 ```text
 TestYourBreath/
+├── docker-compose.yml                  # Orkestrasi multi-kontainer Docker (Backend & Frontend)
+├── .dockerignore                       # Pengecualian berkas saat build Docker di root
+│
 ├── frontend/
+│   ├── Dockerfile                      # Multi-stage build Nginx Alpine untuk frontend React SPA
+│   ├── nginx.conf                      # Konfigurasi reverse proxy & SPA routing Nginx
+│   ├── .dockerignore                   # Pengecualian berkas konteks Docker frontend
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Navbar.jsx              # Navigasi & status indikator AST aktif
@@ -92,6 +100,7 @@ TestYourBreath/
 │   │   │   ├── AnalysisProgress.jsx    # Status tahapan pemrosesan inferensi
 │   │   │   ├── ResultSummary.jsx       # Ringkasan hasil klasifikasi & gauge threshold
 │   │   │   ├── WindowResults.jsx       # Visualisasi timeline & tabel interaktif per-window
+│   │   │   ├── RecordingGuide.jsx      # Panduan visual posisi auskultasi trakea leher depan
 │   │   │   └── MedicalDisclaimer.jsx   # Banner batasan tanggung jawab medis
 │   │   ├── pages/
 │   │   │   ├── Home.jsx                # Beranda, penjelasan AST & manfaat
@@ -109,6 +118,8 @@ TestYourBreath/
 │   └── .env.example                    # Template variabel environment frontend
 │
 ├── backend/
+│   ├── Dockerfile                      # Kontainer Python 3.11-slim + libsndfile & ffmpeg
+│   ├── .dockerignore                   # Pengecualian berkas konteks Docker backend
 │   ├── app/
 │   │   ├── main.py                     # Entry point FastAPI, CORS, & lifespan loader
 │   │   ├── api/
@@ -118,23 +129,23 @@ TestYourBreath/
 │   │   │   └── config.py               # Konfigurasi sistem & path absolut model
 │   │   ├── services/
 │   │   │   ├── model_loader.py         # Pemuat model AST & verifikasi bobot ketat
-│   │   │   ├── audio_processor.py      # Resampling 16kHz, mono, & windowing 2,7s
+│   │   │   ├── audio_processor.py      # Resampling 16kHz, mono, Butterworth, & windowing 2,7s
 │   │   │   ├── inference_service.py    # Ekstraksi fitur mel & forward pass AST
-│   │   │   └── result_aggregator.py    # Agregasi maksimum & evaluasi threshold
+│   │   │   └── result_aggregator.py    # Agregasi Mode Konsensus Robust & evaluasi threshold
 │   │   ├── schemas/
 │   │   │   └── prediction.py           # Skema Pydantic respon & input
 │   │   └── utils/
-│   │       └── file_validation.py      # Validasi ukuran & magic bytes RIFF/WAVE
+│   │       └── file_validation.py      # Validasi ukuran & magic bytes RIFF/WAVE/MP3/M4A
 │   ├── models/
 │   │   └── ast/
-│   │       ├── pulmosense_v6_ast_window_final.pth  # Checkpoint bobot AST fine-tuned
+│   │       ├── pulmosense_v6_ast_window_final.pth  # Checkpoint bobot AST fine-tuned (~345 MB)
 │   │       ├── config.json                         # Konfigurasi arsitektur model
 │   │       ├── preprocessor_config.json            # Konfigurasi ASTFeatureExtractor
 │   │       └── model_metadata.json                 # Metadata threshold & windowing
 │   ├── tests/
 │   │   ├── conftest.py                 # Fixture pytest untuk inisialisasi model
 │   │   ├── test_model_loader.py        # Pengujian pemuatan bobot strict=True
-│   │   ├── test_audio_processor.py     # Pengujian resampling & windowing
+│   │   ├── test_audio_processor.py     # Pengujian resampling, filter CORSA, & windowing
 │   │   ├── test_health.py              # Pengujian endpoint health & model-info
 │   │   └── test_prediction.py          # Pengujian inferensi WAV nyata & error handling
 │   ├── requirements.txt                # Dependensi Python
@@ -148,11 +159,15 @@ TestYourBreath/
 
 ## 💻 Persyaratan Sistem
 
-- **Sistem Operasi**: Windows 10/11, macOS, atau Linux
-- **Python**: Versi **3.10** hingga **3.13** (Direkomendasikan Python 3.11 / 3.12 / 3.13)
-- **Node.js**: Versi **18+** atau **20+** (Teruji pada Node v24.12.0)
-- **RAM**: Minimal 4 GB (Direkomendasikan 8 GB untuk inferensi AST mulus pada CPU)
-- **Penyimpanan**: Ruang kosong minimal ~1.5 GB untuk dependensi dan checkpoint bobot
+- **Opsi Docker (Direkomendasikan)**:
+  - **Docker Desktop** (Windows 10/11 atau macOS) atau **Docker Engine + Docker Compose v2** (Linux)
+  - RAM yang dialokasikan ke Docker: Minimal 4 GB (Direkomendasikan 6–8 GB)
+- **Opsi Manual Lokal**:
+  - **Sistem Operasi**: Windows 10/11, macOS, atau Linux
+  - **Python**: Versi **3.10** hingga **3.13** (Direkomendasikan Python 3.11 / 3.12 / 3.13)
+  - **Node.js**: Versi **18+** atau **20+** (Teruji pada Node v24.12.0)
+  - **RAM**: Minimal 4 GB (Direkomendasikan 8 GB untuk inferensi AST mulus pada CPU)
+- **Penyimpanan**: Ruang kosong minimal ~1.5 GB untuk dependensi dan checkpoint bobot model AST
 
 ---
 
@@ -183,9 +198,71 @@ TestYourBreath/
 > # Atau jika file .pth belum terunduh: git lfs pull
 > ```
 
-Jalankan perintah berikut melalui terminal (PowerShell di Windows atau terminal VS Code):
+---
 
-### 1. Backend (FastAPI + PyTorch)
+### 🐳 Opsi A: Docker & Docker Compose (Paling Cepat & Direkomendasikan)
+
+Metode ini menjalankan seluruh ekosistem **TestYourBreath** (Backend FastAPI + PyTorch dan Frontend Nginx Production) dalam kontainer terisolasi dengan satu perintah, tanpa perlu memasang Python atau Node.js di komputer host.
+
+#### 1. Prasyarat
+- Pastikan **Docker** dan **Docker Compose** telah terpasang dan aplikasi **Docker Desktop** sedang berjalan.
+
+#### 2. Menjalankan Seluruh Sistem (One-Command Build & Run)
+Buka terminal di direktori root proyek `TestYourBreath`:
+
+```bash
+# Build dan jalankan kedua kontainer (Backend & Frontend)
+docker compose up --build
+```
+
+> **Ingin menjalankan di latar belakang (*detached mode*)?**
+> ```bash
+> docker compose up -d --build
+> ```
+
+#### 3. Akses Aplikasi & Layanan
+Setelah kontainer berhasil berjalan:
+- 🌐 **Antarmuka Pengguna (Frontend Web)**:
+  - Buka peramban di: **`http://localhost:3000`** atau **`http://localhost:5173`**
+- 🔌 **API Backend (FastAPI)**:
+  - Dokumentasi Interaktif Swagger UI: **`http://localhost:8000/docs`**
+  - Pemeriksaan Kesehatan Server & Model: **`http://localhost:8000/api/v1/health`**
+  - Metadata Model AST: **`http://localhost:8000/api/v1/model-info`**
+
+#### 4. Menghentikan Kontainer
+Untuk menghentikan layanan Docker Compose:
+```bash
+docker compose down
+```
+
+#### 5. Perintah Berguna Lainnya (Docker CLI)
+```bash
+# Melihat log aktivitas kontainer secara real-time
+docker compose logs -f
+
+# Memeriksa status kesehatan kontainer
+docker compose ps
+
+# Menjalankan pengujian (pytest) di dalam kontainer backend yang sedang berjalan
+docker compose exec backend pytest tests -v
+
+# Membangun kontainer secara terpisah (opsional tanpa docker-compose):
+# 1. Backend:
+docker build -t testyourbreath-backend ./backend
+docker run -d -p 8000:8000 --name testyourbreath-backend testyourbreath-backend
+
+# 2. Frontend:
+docker build -t testyourbreath-frontend ./frontend
+docker run -d -p 3000:80 --name testyourbreath-frontend testyourbreath-frontend
+```
+
+---
+
+### 💻 Opsi B: Instalasi Manual Lokal (Development)
+
+Jika Anda ingin memodifikasi kode sumber secara aktif (*hot-reload development*), jalankan backend dan frontend di terminal terpisah:
+
+#### 1. Backend (FastAPI + PyTorch)
 
 Buka terminal pertama di direktori root `TestYourBreath`:
 
@@ -213,7 +290,7 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ---
 
-### 2. Frontend (React + Vite + Tailwind CSS)
+#### 2. Frontend (React + Vite + Tailwind CSS)
 
 Buka terminal kedua di direktori root `TestYourBreath`:
 

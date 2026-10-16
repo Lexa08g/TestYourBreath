@@ -1,0 +1,15 @@
+.git
+.gitignore
+.dockerignore
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+node_modules
+dist
+dist-ssr
+*.pdf
+*.txt

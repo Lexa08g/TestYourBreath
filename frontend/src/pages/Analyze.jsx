@@ -6,7 +6,6 @@ import {
 import AudioUploader from '../components/AudioUploader';
 import AudioPlayer from '../components/AudioPlayer';
 import AnalysisProgress from '../components/AnalysisProgress';
-import MedicalDisclaimer from '../components/MedicalDisclaimer';
 import RecordingGuide from '../components/RecordingGuide';
 import { analyzeAudio } from '../services/api';
 
@@ -139,9 +138,6 @@ export default function Analyze({ onAnalysisComplete }) {
           </div>
         )}
       </div>
-
-      {/* Medical Disclaimer */}
-      <MedicalDisclaimer compact={true} />
     </div>
   );
 }

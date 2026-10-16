@@ -4,7 +4,6 @@ import {
   HelpCircle, CheckCircle2, ArrowRight, ExternalLink 
 } from 'lucide-react';
 import { getModelInfo } from '../services/api';
-import MedicalDisclaimer from '../components/MedicalDisclaimer';
 
 export default function About({ setActivePage }) {
   const [modelInfo, setModelInfo] = useState(null);
@@ -138,9 +137,6 @@ export default function About({ setActivePage }) {
           </div>
         </div>
       </section>
-
-      {/* 5. Medical Disclaimer */}
-      <MedicalDisclaimer />
     </div>
   );
 }

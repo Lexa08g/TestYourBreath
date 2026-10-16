@@ -4,7 +4,6 @@ import {
   CheckCircle2, AlertCircle, FileAudio, Sparkles, Stethoscope 
 } from 'lucide-react';
 import AudioVisualizer from '../components/AudioVisualizer';
-import MedicalDisclaimer from '../components/MedicalDisclaimer';
 
 export default function Home({ setActivePage }) {
   return (
@@ -215,9 +214,6 @@ export default function Home({ setActivePage }) {
           </div>
         </div>
       </section>
-
-      {/* Medical Disclaimer Banner */}
-      <MedicalDisclaimer />
     </div>
   );
 }
